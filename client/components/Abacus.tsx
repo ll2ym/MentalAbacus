@@ -35,7 +35,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   useEffect(() => {
     const initialBeads: Bead[] = [];
     for (let rod = 0; rod < RODS; rod++) {
-      // Upper section - 1 bead (worth 5)
+      // Upper section - 1 bead (worth 5) - starts at TOP
       for (let i = 0; i < UPPER_BEADS; i++) {
         initialBeads.push({
           id: `${rod}-upper-${i}`,
@@ -46,14 +46,14 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
         });
       }
 
-      // Lower section - 4 beads (worth 1 each)
+      // Lower section - 4 beads (worth 1 each) - start at BOTTOM
       for (let i = 0; i < LOWER_BEADS; i++) {
         initialBeads.push({
           id: `${rod}-lower-${i}`,
           rod,
           section: "lower",
           beadIndex: i,
-          positionY: DIVIDER_Y + 10 + i * BEAD_SIZE,
+          positionY: 190 - i * BEAD_SIZE, // Start from bottom and go up
         });
       }
     }
@@ -66,13 +66,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
     beads.forEach((bead) => {
       if (bead.section === "upper") {
-        // 1 upper bead worth 5 - active when moved down (positionY > 45)
-        if (bead.positionY > 45) {
+        // 1 upper bead worth 5 - active when moved down (positionY > 40)
+        if (bead.positionY > 40) {
           values[bead.rod] += 5;
         }
       } else {
-        // 4 lower beads worth 1 each - active when moved up (positionY < 85)
-        if (bead.positionY < 85) {
+        // 4 lower beads worth 1 each - active when moved up (positionY < 90)
+        if (bead.positionY < 90) {
           values[bead.rod] += 1;
         }
       }
@@ -101,12 +101,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
             positionY: upperActive ? 50 : 10,
           };
         } else {
-          // 4 lower beads worth 1 each
+          // 4 lower beads worth 1 each - start at bottom, move up toward divider
           const lowerValue = digit % 5;
           const isActive = bead.beadIndex < lowerValue;
+          // Active beads move up near divider, inactive stay at bottom
           return {
             ...bead,
-            positionY: isActive ? 80 : DIVIDER_Y + 10 + bead.beadIndex * BEAD_SIZE,
+            positionY: isActive ? 75 : 190 - bead.beadIndex * BEAD_SIZE,
           };
         }
       });
@@ -139,8 +140,9 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
             minY = 10;
             maxY = 55;
           } else {
-            minY = DIVIDER_Y + 10;
-            maxY = DIVIDER_Y + 10 + (LOWER_BEADS - 1) * BEAD_SIZE;
+            // Lower beads: can move from near divider to bottom
+            minY = 75;
+            maxY = 190;
           }
 
           const newPosition = Math.max(minY, Math.min(maxY, mouseY - dragOffset));
@@ -284,13 +286,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
             beads.forEach((bead) => {
               if (bead.section === "upper") {
-                // 1 upper bead worth 5 - active when positionY > 45
-                if (bead.positionY > 45) {
+                // 1 upper bead worth 5 - active when positionY > 40
+                if (bead.positionY > 40) {
                   values[bead.rod] += 5;
                 }
               } else {
-                // 4 lower beads worth 1 each - active when positionY < 85
-                if (bead.positionY < 85) {
+                // 4 lower beads worth 1 each - active when positionY < 90
+                if (bead.positionY < 90) {
                   values[bead.rod] += 1;
                 }
               }
