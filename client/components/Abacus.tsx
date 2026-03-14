@@ -14,15 +14,16 @@ interface AbacusProps {
 }
 
 const RODS = 10;
-const UPPER_BEADS = 2;
-const LOWER_BEADS = 5;
+const UPPER_BEADS = 1;
+const LOWER_BEADS = 4;
 const BEAD_RADIUS = 10;
 const ROD_WIDTH = 30;
 const ROD_SPACING = 40;
-const DIVIDER_Y = 90;
+const DIVIDER_Y = 70;
 const UPPER_RAIL_HEIGHT = 50;
 const LOWER_RAIL_HEIGHT = 100;
 const BEAD_SIZE = 20;
+const WOOD_COLOR = "#8B6F47"; // Brown wooden color
 
 export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
@@ -34,18 +35,18 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   useEffect(() => {
     const initialBeads: Bead[] = [];
     for (let rod = 0; rod < RODS; rod++) {
-      // Upper section - 2 beads (worth 5 each)
+      // Upper section - 1 bead (worth 5)
       for (let i = 0; i < UPPER_BEADS; i++) {
         initialBeads.push({
           id: `${rod}-upper-${i}`,
           rod,
           section: "upper",
           beadIndex: i,
-          positionY: 10 + i * BEAD_SIZE,
+          positionY: 10,
         });
       }
 
-      // Lower section - 5 beads (worth 1 each)
+      // Lower section - 4 beads (worth 1 each)
       for (let i = 0; i < LOWER_BEADS; i++) {
         initialBeads.push({
           id: `${rod}-lower-${i}`,
@@ -65,13 +66,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
     beads.forEach((bead) => {
       if (bead.section === "upper") {
-        // Upper beads are active when they touch the divider (positionY > 65)
-        if (bead.positionY > 65) {
+        // 1 upper bead worth 5 - active when moved down (positionY > 45)
+        if (bead.positionY > 45) {
           values[bead.rod] += 5;
         }
       } else {
-        // Lower beads are active when they touch the divider (positionY < 100)
-        if (bead.positionY < 100) {
+        // 4 lower beads worth 1 each - active when moved up (positionY < 85)
+        if (bead.positionY < 85) {
           values[bead.rod] += 1;
         }
       }
@@ -93,20 +94,19 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
         const digit = parseInt(valueStr[bead.rod]);
 
         if (bead.section === "upper") {
-          // Upper beads: 2 beads worth 5 each
-          const upperValue = Math.min(2, Math.floor(digit / 5));
-          const isActive = bead.beadIndex < upperValue;
+          // 1 upper bead worth 5
+          const upperActive = Math.floor(digit / 5) > 0;
           return {
             ...bead,
-            positionY: isActive ? 70 : 10 + bead.beadIndex * BEAD_SIZE,
+            positionY: upperActive ? 50 : 10,
           };
         } else {
-          // Lower beads: 5 beads worth 1 each
+          // 4 lower beads worth 1 each
           const lowerValue = digit % 5;
           const isActive = bead.beadIndex < lowerValue;
           return {
             ...bead,
-            positionY: isActive ? 90 : DIVIDER_Y + 10 + bead.beadIndex * BEAD_SIZE,
+            positionY: isActive ? 80 : DIVIDER_Y + 10 + bead.beadIndex * BEAD_SIZE,
           };
         }
       });
@@ -137,10 +137,10 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
           if (bead.section === "upper") {
             minY = 10;
-            maxY = 75;
+            maxY = 55;
           } else {
             minY = DIVIDER_Y + 10;
-            maxY = DIVIDER_Y + 10 + LOWER_BEADS * BEAD_SIZE - BEAD_SIZE;
+            maxY = DIVIDER_Y + 10 + (LOWER_BEADS - 1) * BEAD_SIZE;
           }
 
           const newPosition = Math.max(minY, Math.min(maxY, mouseY - dragOffset));
@@ -218,7 +218,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
                     width={BEAD_SIZE}
                     height={BEAD_SIZE}
                     rx="4"
-                    fill={`hsl(${20 + (rodIndex * 35) % 340}, 85%, 55%)`}
+                    fill={WOOD_COLOR}
                     stroke="#ffffff"
                     strokeWidth="1.5"
                     style={{
@@ -250,7 +250,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
                     width={BEAD_SIZE}
                     height={BEAD_SIZE}
                     rx="4"
-                    fill={`hsl(${20 + (rodIndex * 35) % 340}, 90%, 45%)`}
+                    fill={WOOD_COLOR}
                     stroke="#ffffff"
                     strokeWidth="1.5"
                     style={{
@@ -284,11 +284,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
             beads.forEach((bead) => {
               if (bead.section === "upper") {
-                if (bead.positionY > 65) {
+                // 1 upper bead worth 5 - active when positionY > 45
+                if (bead.positionY > 45) {
                   values[bead.rod] += 5;
                 }
               } else {
-                if (bead.positionY < 100) {
+                // 4 lower beads worth 1 each - active when positionY < 85
+                if (bead.positionY < 85) {
                   values[bead.rod] += 1;
                 }
               }
