@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from "react";
 
 interface Bead {
   id: string;
-  row: number;
+  rod: number;
   section: "upper" | "lower"; // upper = 2 beads (worth 5 each), lower = 5 beads (worth 1 each)
-  position: number;
+  beadIndex: number;
+  positionY: number;
 }
 
 interface AbacusProps {
@@ -12,11 +13,16 @@ interface AbacusProps {
   onValueChange?: (value: number) => void;
 }
 
-const ROWS = 10;
-const BEAD_RADIUS = 12;
-const ROD_GAP = 60;
+const RODS = 10;
 const UPPER_BEADS = 2;
 const LOWER_BEADS = 5;
+const BEAD_RADIUS = 10;
+const ROD_WIDTH = 30;
+const ROD_SPACING = 40;
+const DIVIDER_Y = 90;
+const UPPER_RAIL_HEIGHT = 50;
+const LOWER_RAIL_HEIGHT = 100;
+const BEAD_SIZE = 20;
 
 export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
@@ -27,24 +33,26 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   // Initialize beads
   useEffect(() => {
     const initialBeads: Bead[] = [];
-    for (let row = 0; row < ROWS; row++) {
+    for (let rod = 0; rod < RODS; rod++) {
       // Upper section - 2 beads (worth 5 each)
-      for (let bead = 0; bead < UPPER_BEADS; bead++) {
+      for (let i = 0; i < UPPER_BEADS; i++) {
         initialBeads.push({
-          id: `${row}-upper-${bead}`,
-          row,
+          id: `${rod}-upper-${i}`,
+          rod,
           section: "upper",
-          position: bead * 28,
+          beadIndex: i,
+          positionY: 10 + i * BEAD_SIZE,
         });
       }
 
       // Lower section - 5 beads (worth 1 each)
-      for (let bead = 0; bead < LOWER_BEADS; bead++) {
+      for (let i = 0; i < LOWER_BEADS; i++) {
         initialBeads.push({
-          id: `${row}-lower-${bead}`,
-          row,
+          id: `${rod}-lower-${i}`,
+          rod,
           section: "lower",
-          position: bead * 28,
+          beadIndex: i,
+          positionY: DIVIDER_Y + 10 + i * BEAD_SIZE,
         });
       }
     }
@@ -53,49 +61,64 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
 
   // Calculate current value from bead positions
   useEffect(() => {
-    const value = beads.reduce((sum, bead) => {
-      const rowValue = Math.pow(10, ROWS - 1 - bead.row);
-      let beadValue = 0;
+    const values = Array(RODS).fill(0);
 
+    beads.forEach((bead) => {
       if (bead.section === "upper") {
-        // Upper beads: each worth 5 when moved down (position > 15)
-        beadValue = bead.position > 15 ? 5 : 0;
+        // Upper beads are active when they touch the divider (positionY > 65)
+        if (bead.positionY > 65) {
+          values[bead.rod] += 5;
+        }
       } else {
-        // Lower beads: each worth 1 when moved up (position < 70)
-        beadValue = bead.position < 70 ? 1 : 0;
+        // Lower beads are active when they touch the divider (positionY < 100)
+        if (bead.positionY < 100) {
+          values[bead.rod] += 1;
+        }
       }
+    });
 
-      return sum + beadValue * rowValue;
-    }, 0);
+    const value = values.reduce(
+      (sum, digit, idx) => sum + digit * Math.pow(10, RODS - 1 - idx),
+      0
+    );
 
     onValueChange?.(value);
-  }, [beads, onValueChange]);
+  }, [beads]);
 
   // Animate beads to target value
   useEffect(() => {
     if (targetValue !== undefined && targetValue >= 0) {
-      const valueStr = targetValue.toString().padStart(ROWS, "0");
+      const valueStr = targetValue.toString().padStart(RODS, "0");
       const newBeads = beads.map((bead) => {
-        const digit = parseInt(valueStr[bead.row]);
+        const digit = parseInt(valueStr[bead.rod]);
 
         if (bead.section === "upper") {
-          // Upper beads: 2 beads worth 5 each, so can represent 0, 5, or 10
-          // Count how many upper beads should be "active" (position > 15)
+          // Upper beads: 2 beads worth 5 each
           const upperValue = Math.min(2, Math.floor(digit / 5));
-          const beadIndex = parseInt(bead.id.split("-")[2]);
-          return { ...bead, position: beadIndex < upperValue ? 28 : 0 };
+          const isActive = bead.beadIndex < upperValue;
+          return {
+            ...bead,
+            positionY: isActive ? 70 : 10 + bead.beadIndex * BEAD_SIZE,
+          };
         } else {
           // Lower beads: 5 beads worth 1 each
           const lowerValue = digit % 5;
-          const beadIndex = parseInt(bead.id.split("-")[2]);
-          return { ...bead, position: beadIndex < lowerValue ? 112 : 0 };
+          const isActive = bead.beadIndex < lowerValue;
+          return {
+            ...bead,
+            positionY: isActive ? 90 : DIVIDER_Y + 10 + bead.beadIndex * BEAD_SIZE,
+          };
         }
       });
       setBeads(newBeads);
     }
   }, [targetValue]);
 
-  const handleMouseDown = (beadId: string, clientY: number, currentY: number) => {
+  const handleMouseDown = (
+    beadId: string,
+    clientY: number,
+    currentY: number
+  ) => {
     setDraggingBead(beadId);
     setDragOffset(clientY - currentY);
   };
@@ -113,18 +136,15 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
           let minY, maxY;
 
           if (bead.section === "upper") {
-            minY = 20;
-            maxY = 50;
+            minY = 10;
+            maxY = 75;
           } else {
-            minY = 90;
-            maxY = 140;
+            minY = DIVIDER_Y + 10;
+            maxY = DIVIDER_Y + 10 + LOWER_BEADS * BEAD_SIZE - BEAD_SIZE;
           }
 
-          const newPosition = Math.max(
-            minY,
-            Math.min(maxY, mouseY - dragOffset)
-          );
-          return { ...bead, position: newPosition - (bead.section === "upper" ? 20 : 90) };
+          const newPosition = Math.max(minY, Math.min(maxY, mouseY - dragOffset));
+          return { ...bead, positionY: newPosition };
         }
         return bead;
       })
@@ -135,148 +155,121 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
     setDraggingBead(null);
   };
 
+  const getRodX = (rodIndex: number) => {
+    return 30 + rodIndex * ROD_SPACING;
+  };
+
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-6">
       <svg
         ref={svgRef}
-        width={240}
-        height={ROWS * ROD_GAP + 40}
-        className="border-2 border-slate-400 rounded-lg bg-gradient-to-b from-amber-50 to-amber-100 shadow-lg"
+        width={30 + RODS * ROD_SPACING + 30}
+        height={250}
+        className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl"
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\"><rect fill=\"%23d97706\" opacity=\"0.05\" width=\"40\" height=\"40\"/><line x1=\"0\" y1=\"0\" x2=\"40\" y2=\"0\" stroke=\"%23d97706\" opacity=\"0.1\"/></svg>')" }}
       >
-        {/* Background */}
-        <defs>
-          <linearGradient id="frameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#fef3c7" />
-            <stop offset="100%" stopColor="#fed7aa" />
-          </linearGradient>
-        </defs>
-        <rect width={240} height={ROWS * ROD_GAP + 40} fill="url(#frameGradient)" />
+        {/* Frame decorations - left and right edges */}
+        <rect x="10" y="10" width="6" height="230" fill="#92400e" rx="3" />
+        <rect
+          x={30 + RODS * ROD_SPACING + 14}
+          y="10"
+          width="6"
+          height="230"
+          fill="#92400e"
+          rx="3"
+        />
 
-        {/* Frame */}
-        <rect x={10} y={10} width={220} height={ROWS * ROD_GAP + 20} fill="none" stroke="#a16207" strokeWidth={2} rx={4} />
+        {/* Upper rail */}
+        <rect x="15" y="20" width={RODS * ROD_SPACING - 10} height="6" fill="#92400e" rx="2" />
+
+        {/* Divider bar */}
+        <rect x="15" y={DIVIDER_Y - 2} width={RODS * ROD_SPACING - 10} height="8" fill="#92400e" rx="2" />
+
+        {/* Lower rail */}
+        <rect x="15" y="215" width={RODS * ROD_SPACING - 10} height="6" fill="#92400e" rx="2" />
 
         {/* Draw rods and beads */}
-        {Array.from({ length: ROWS }).map((_, rowIndex) => {
-          const rodY = 30 + rowIndex * ROD_GAP;
-          const upperRodY = rodY;
-          const lowerRodY = rodY + 60;
-          const dividerY = rodY + 30;
+        {Array.from({ length: RODS }).map((_, rodIndex) => {
+          const rodX = getRodX(rodIndex);
 
           return (
-            <g key={rowIndex}>
-              {/* Divider line separating upper and lower sections */}
+            <g key={rodIndex}>
+              {/* Rod */}
               <line
-                x1={20}
-                y1={dividerY}
-                x2={220}
-                y2={dividerY}
-                stroke="#d97706"
-                strokeWidth={1.5}
-                opacity={0.5}
-              />
-
-              {/* Upper rod */}
-              <line
-                x1={20}
-                y1={upperRodY}
-                x2={220}
-                y2={upperRodY}
+                x1={rodX}
+                y1="20"
+                x2={rodX}
+                y2="220"
                 stroke="#92400e"
-                strokeWidth={1.5}
+                strokeWidth="1.5"
               />
 
-              {/* Lower rod */}
-              <line
-                x1={20}
-                y1={lowerRodY}
-                x2={220}
-                y2={lowerRodY}
-                stroke="#92400e"
-                strokeWidth={1.5}
-              />
-
-              {/* Upper beads (2 beads worth 5 each) */}
+              {/* Upper beads */}
               {beads
-                .filter(
-                  (bead) =>
-                    bead.row === rowIndex && bead.section === "upper"
-                )
-                .map((bead, idx) => {
-                  const spacingX = 30 + idx * 45;
-                  return (
-                    <circle
-                      key={bead.id}
-                      cx={spacingX + bead.position}
-                      cy={upperRodY}
-                      r={BEAD_RADIUS}
-                      fill={`hsl(${20 + (rowIndex * 18) % 340}, 85%, 55%)`}
-                      stroke="#fff"
-                      strokeWidth={2}
-                      style={{
-                        cursor:
-                          draggingBead === bead.id ? "grabbing" : "grab",
-                        transition:
-                          draggingBead === bead.id
-                            ? "none"
-                            : "all 0.2s ease-out",
-                        filter:
-                          draggingBead === bead.id
-                            ? "drop-shadow(0 3px 10px rgba(0,0,0,0.3))"
-                            : "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                      }}
-                      onMouseDown={(e) =>
-                        handleMouseDown(
-                          bead.id,
-                          e.clientY,
-                          upperRodY
-                        )
-                      }
-                    />
-                  );
-                })}
+                .filter((bead) => bead.rod === rodIndex && bead.section === "upper")
+                .map((bead) => (
+                  <rect
+                    key={bead.id}
+                    x={rodX - BEAD_RADIUS}
+                    y={bead.positionY}
+                    width={BEAD_SIZE}
+                    height={BEAD_SIZE}
+                    rx="4"
+                    fill={`hsl(${20 + (rodIndex * 35) % 340}, 85%, 55%)`}
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    style={{
+                      cursor:
+                        draggingBead === bead.id ? "grabbing" : "grab",
+                      transition:
+                        draggingBead === bead.id
+                          ? "none"
+                          : "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      filter:
+                        draggingBead === bead.id
+                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.3))"
+                          : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
+                    }}
+                    onMouseDown={(e) =>
+                      handleMouseDown(bead.id, e.clientY, bead.positionY)
+                    }
+                  />
+                ))}
 
-              {/* Lower beads (5 beads worth 1 each) */}
+              {/* Lower beads */}
               {beads
-                .filter(
-                  (bead) =>
-                    bead.row === rowIndex && bead.section === "lower"
-                )
-                .map((bead, idx) => {
-                  const spacingX = 20 + idx * 40;
-                  return (
-                    <circle
-                      key={bead.id}
-                      cx={spacingX + bead.position}
-                      cy={lowerRodY}
-                      r={BEAD_RADIUS}
-                      fill={`hsl(${20 + (rowIndex * 18) % 340}, 90%, 45%)`}
-                      stroke="#fff"
-                      strokeWidth={2}
-                      style={{
-                        cursor:
-                          draggingBead === bead.id ? "grabbing" : "grab",
-                        transition:
-                          draggingBead === bead.id
-                            ? "none"
-                            : "all 0.2s ease-out",
-                        filter:
-                          draggingBead === bead.id
-                            ? "drop-shadow(0 3px 10px rgba(0,0,0,0.3))"
-                            : "drop-shadow(0 2px 4px rgba(0,0,0,0.1))",
-                      }}
-                      onMouseDown={(e) =>
-                        handleMouseDown(
-                          bead.id,
-                          e.clientY,
-                          lowerRodY
-                        )
-                      }
-                    />
-                  );
-                })}
+                .filter((bead) => bead.rod === rodIndex && bead.section === "lower")
+                .map((bead) => (
+                  <rect
+                    key={bead.id}
+                    x={rodX - BEAD_RADIUS}
+                    y={bead.positionY}
+                    width={BEAD_SIZE}
+                    height={BEAD_SIZE}
+                    rx="4"
+                    fill={`hsl(${20 + (rodIndex * 35) % 340}, 90%, 45%)`}
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                    style={{
+                      cursor:
+                        draggingBead === bead.id ? "grabbing" : "grab",
+                      transition:
+                        draggingBead === bead.id
+                          ? "none"
+                          : "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                      filter:
+                        draggingBead === bead.id
+                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.3))"
+                          : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
+                    }}
+                    onMouseDown={(e) =>
+                      handleMouseDown(bead.id, e.clientY, bead.positionY)
+                    }
+                  />
+                ))}
             </g>
           );
         })}
@@ -285,19 +278,27 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
       {/* Value display */}
       <div className="text-center">
         <p className="text-sm text-slate-600 mb-2">Current Value</p>
-        <p className="text-3xl font-bold text-indigo-600">
-          {beads.reduce((sum, bead) => {
-            const rowValue = Math.pow(10, ROWS - 1 - bead.row);
-            let beadValue = 0;
+        <p className="text-4xl font-bold text-indigo-600">
+          {(() => {
+            const values = Array(RODS).fill(0);
 
-            if (bead.section === "upper") {
-              beadValue = bead.position > 15 ? 5 : 0;
-            } else {
-              beadValue = bead.position < 70 ? 1 : 0;
-            }
+            beads.forEach((bead) => {
+              if (bead.section === "upper") {
+                if (bead.positionY > 65) {
+                  values[bead.rod] += 5;
+                }
+              } else {
+                if (bead.positionY < 100) {
+                  values[bead.rod] += 1;
+                }
+              }
+            });
 
-            return sum + beadValue * rowValue;
-          }, 0)}
+            return values.reduce(
+              (sum, digit, idx) => sum + digit * Math.pow(10, RODS - 1 - idx),
+              0
+            );
+          })()}
         </p>
       </div>
     </div>
