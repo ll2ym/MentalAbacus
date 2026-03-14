@@ -11,9 +11,10 @@ interface Bead {
 interface AbacusProps {
   targetValue?: number;
   onValueChange?: (value: number) => void;
+  rods?: number;
 }
 
-const RODS = 10;
+const DEFAULT_RODS = 10;
 const UPPER_BEADS = 1;
 const LOWER_BEADS = 4;
 const BEAD_RADIUS = 10;
@@ -25,7 +26,7 @@ const LOWER_RAIL_HEIGHT = 100;
 const BEAD_SIZE = 20;
 const WOOD_COLOR = "#8B6F47"; // Brown wooden color
 
-export function Abacus({ targetValue, onValueChange }: AbacusProps) {
+export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
   const [draggingBead, setDraggingBead] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState(0);
@@ -34,7 +35,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
   // Initialize beads
   useEffect(() => {
     const initialBeads: Bead[] = [];
-    for (let rod = 0; rod < RODS; rod++) {
+    for (let rod = 0; rod < rods; rod++) {
       // Upper section - 1 bead (worth 5) - starts at TOP
       for (let i = 0; i < UPPER_BEADS; i++) {
         initialBeads.push({
@@ -58,11 +59,11 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
       }
     }
     setBeads(initialBeads);
-  }, []);
+  }, [rods]);
 
   // Calculate current value from bead positions
   useEffect(() => {
-    const values = Array(RODS).fill(0);
+    const values = Array(rods).fill(0);
 
     beads.forEach((bead) => {
       if (bead.section === "upper") {
@@ -79,17 +80,17 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
     });
 
     const value = values.reduce(
-      (sum, digit, idx) => sum + digit * Math.pow(10, RODS - 1 - idx),
+      (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
       0
     );
 
     onValueChange?.(value);
-  }, [beads]);
+  }, [beads, rods]);
 
   // Animate beads to target value
   useEffect(() => {
     if (targetValue !== undefined && targetValue >= 0) {
-      const valueStr = targetValue.toString().padStart(RODS, "0");
+      const valueStr = targetValue.toString().padStart(rods, "0");
       const newBeads = beads.map((bead) => {
         const digit = parseInt(valueStr[bead.rod]);
 
@@ -113,7 +114,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
       });
       setBeads(newBeads);
     }
-  }, [targetValue]);
+  }, [targetValue, rods]);
 
   const handleMouseDown = (
     beadId: string,
@@ -161,11 +162,13 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
     return 30 + rodIndex * ROD_SPACING;
   };
 
+  const svgWidth = 30 + rods * ROD_SPACING + 30;
+
   return (
     <div className="flex flex-col items-center gap-6">
       <svg
         ref={svgRef}
-        width={30 + RODS * ROD_SPACING + 30}
+        width={svgWidth}
         height={250}
         className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl"
         onMouseMove={handleMouseMove}
@@ -176,7 +179,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
         {/* Frame decorations - left and right edges */}
         <rect x="10" y="10" width="6" height="230" fill="#92400e" rx="3" />
         <rect
-          x={30 + RODS * ROD_SPACING + 14}
+          x={svgWidth - 16}
           y="10"
           width="6"
           height="230"
@@ -185,16 +188,16 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
         />
 
         {/* Upper rail */}
-        <rect x="15" y="20" width={RODS * ROD_SPACING - 10} height="6" fill="#92400e" rx="2" />
+        <rect x="15" y="20" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
 
         {/* Divider bar */}
-        <rect x="15" y={DIVIDER_Y - 2} width={RODS * ROD_SPACING - 10} height="8" fill="#92400e" rx="2" />
+        <rect x="15" y={DIVIDER_Y - 2} width={svgWidth - 40} height="8" fill="#92400e" rx="2" />
 
         {/* Lower rail */}
-        <rect x="15" y="215" width={RODS * ROD_SPACING - 10} height="6" fill="#92400e" rx="2" />
+        <rect x="15" y="215" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
 
         {/* Draw rods and beads */}
-        {Array.from({ length: RODS }).map((_, rodIndex) => {
+        {Array.from({ length: rods }).map((_, rodIndex) => {
           const rodX = getRodX(rodIndex);
 
           return (
@@ -282,7 +285,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
         <p className="text-sm text-slate-600 mb-2">Current Value</p>
         <p className="text-4xl font-bold text-indigo-600">
           {(() => {
-            const values = Array(RODS).fill(0);
+            const values = Array(rods).fill(0);
 
             beads.forEach((bead) => {
               if (bead.section === "upper") {
@@ -299,7 +302,7 @@ export function Abacus({ targetValue, onValueChange }: AbacusProps) {
             });
 
             return values.reduce(
-              (sum, digit, idx) => sum + digit * Math.pow(10, RODS - 1 - idx),
+              (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
               0
             );
           })()}

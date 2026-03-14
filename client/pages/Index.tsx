@@ -169,6 +169,7 @@ export default function Index() {
               className="flex justify-center overflow-x-auto mb-4"
             >
               <Abacus
+                rods={9}
                 targetValue={solvedValue ?? undefined}
                 onValueChange={setAbacusValue}
               />
