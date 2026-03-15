@@ -281,9 +281,10 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                 strokeWidth="1.5"
               />
 
-              {/* Upper beads */}
+              {/* Lower beads FIRST (render behind) - sorted descending so beads at bottom render first, top beads render last (on top) */}
               {beads
-                .filter((bead) => bead.rod === rodIndex && bead.section === "upper")
+                .filter((bead) => bead.rod === rodIndex && bead.section === "lower")
+                .sort((a, b) => b.positionY - a.positionY)
                 .map((bead) => (
                   <rect
                     key={bead.id}
@@ -314,10 +315,9 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                   />
                 ))}
 
-              {/* Lower beads - sorted descending by position so topmost beads render on top */}
+              {/* Upper beads LAST (render on top) */}
               {beads
-                .filter((bead) => bead.rod === rodIndex && bead.section === "lower")
-                .sort((a, b) => b.positionY - a.positionY)
+                .filter((bead) => bead.rod === rodIndex && bead.section === "upper")
                 .map((bead) => (
                   <rect
                     key={bead.id}
