@@ -36,49 +36,45 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   const calculateValue = (beadsList: Bead[]): number => {
     const values = Array(rods).fill(0);
 
-    beadsList.forEach((bead) => {
-      if (bead.section === "upper") {
-        // 1 upper bead worth 5 - active when positionY > 40
-        if (bead.positionY > 40) {
-          values[bead.rod] += 5;
-        }
-      } else {
-        // 4 lower beads worth 1 each
-        // A bead counts if it's part of a chain touching the divider
+    for (let rod = 0; rod < rods; rod++) {
+      // Upper bead
+      const upperBead = beadsList.find(
+        (b) => b.rod === rod && b.section === "upper"
+      );
+      if (upperBead && upperBead.positionY > 40) {
+        values[rod] += 5;
+      }
 
-        const isConnectedToDivider = (
-          beadId: string,
-          visited: Set<string> = new Set()
-        ): boolean => {
-          // Prevent infinite loops
-          if (visited.has(beadId)) return false;
-          visited.add(beadId);
+      // Lower beads - count contiguous group near divider
+      const lowerBeads = beadsList
+        .filter((b) => b.rod === rod && b.section === "lower")
+        .sort((a, b) => a.positionY - b.positionY);
 
-          const currentBead = beadsList.find((b) => b.id === beadId);
-          if (!currentBead) return false;
+      // Find the topmost bead position and count beads in contiguous group
+      let countedBeads = 0;
+      for (let i = 0; i < lowerBeads.length; i++) {
+        const bead = lowerBeads[i];
 
-          // If this bead is near divider, it's connected
-          if (currentBead.positionY < 90) {
-            return true;
+        // If this is the first bead (topmost), check if it's near divider
+        if (i === 0) {
+          if (bead.positionY < 90) {
+            countedBeads = 1;
+          } else {
+            break; // No beads near divider
           }
-
-          // Check if any touching bead is connected to divider
-          const touching = beadsList.find(
-            (b) =>
-              b.rod === currentBead.rod &&
-              b.section === "lower" &&
-              b.id !== beadId &&
-              Math.abs(b.positionY - currentBead.positionY) <= BEAD_SIZE + 2
-          );
-
-          return touching ? isConnectedToDivider(touching.id, visited) : false;
-        };
-
-        if (isConnectedToDivider(bead.id)) {
-          values[bead.rod] += 1;
+        } else {
+          // For subsequent beads, check if touching previous bead
+          const prevBead = lowerBeads[i - 1];
+          if (Math.abs(bead.positionY - prevBead.positionY) <= BEAD_SIZE + 2) {
+            countedBeads++;
+          } else {
+            break; // Gap in chain, stop counting
+          }
         }
       }
-    });
+
+      values[rod] += countedBeads;
+    }
 
     return values.reduce(
       (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
@@ -285,10 +281,9 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                 strokeWidth="1.5"
               />
 
-              {/* Upper beads - sorted by position so lower beads render on top */}
+              {/* Upper beads */}
               {beads
                 .filter((bead) => bead.rod === rodIndex && bead.section === "upper")
-                .sort((a, b) => a.positionY - b.positionY)
                 .map((bead) => (
                   <rect
                     key={bead.id}
@@ -319,10 +314,10 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                   />
                 ))}
 
-              {/* Lower beads - sorted by position so lower beads render on top */}
+              {/* Lower beads - sorted descending by position so topmost beads render on top */}
               {beads
                 .filter((bead) => bead.rod === rodIndex && bead.section === "lower")
-                .sort((a, b) => a.positionY - b.positionY)
+                .sort((a, b) => b.positionY - a.positionY)
                 .map((bead) => (
                   <rect
                     key={bead.id}
