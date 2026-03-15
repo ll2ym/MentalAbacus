@@ -45,9 +45,15 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       } else {
         // 4 lower beads worth 1 each
         // A bead counts if it's part of a chain touching the divider
-        // Use a recursive approach to check if this bead is connected to divider
 
-        const isConnectedToDivider = (beadId: string): boolean => {
+        const isConnectedToDivider = (
+          beadId: string,
+          visited: Set<string> = new Set()
+        ): boolean => {
+          // Prevent infinite loops
+          if (visited.has(beadId)) return false;
+          visited.add(beadId);
+
           const currentBead = beadsList.find((b) => b.id === beadId);
           if (!currentBead) return false;
 
@@ -65,7 +71,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
               Math.abs(b.positionY - currentBead.positionY) <= BEAD_SIZE + 2
           );
 
-          return touching ? isConnectedToDivider(touching.id) : false;
+          return touching ? isConnectedToDivider(touching.id, visited) : false;
         };
 
         if (isConnectedToDivider(bead.id)) {
