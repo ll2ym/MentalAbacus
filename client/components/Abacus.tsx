@@ -32,6 +32,49 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   const [dragOffset, setDragOffset] = useState(0);
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // Helper function to calculate value from beads
+  const calculateValue = (beadsList: Bead[]): number => {
+    const values = Array(rods).fill(0);
+
+    beadsList.forEach((bead) => {
+      if (bead.section === "upper") {
+        // 1 upper bead worth 5 - active when positionY > 40
+        if (bead.positionY > 40) {
+          values[bead.rod] += 5;
+        }
+      } else {
+        // 4 lower beads worth 1 each
+        // A bead counts if:
+        // 1. It's near the divider (positionY < 90), OR
+        // 2. It's touching another bead that is near the divider
+
+        const isNearDivider = bead.positionY < 90;
+
+        if (isNearDivider) {
+          values[bead.rod] += 1;
+        } else {
+          // Check if any other bead in the same rod is touching this one and near divider
+          const touchingBead = beadsList.find(
+            (b) =>
+              b.rod === bead.rod &&
+              b.section === "lower" &&
+              b.id !== bead.id &&
+              Math.abs(b.positionY - bead.positionY) <= BEAD_SIZE + 2
+          );
+
+          if (touchingBead && touchingBead.positionY < 90) {
+            values[bead.rod] += 1;
+          }
+        }
+      }
+    });
+
+    return values.reduce(
+      (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
+      0
+    );
+  };
+
   // Initialize beads
   useEffect(() => {
     const initialBeads: Bead[] = [];
@@ -63,29 +106,9 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
 
   // Calculate current value from bead positions
   useEffect(() => {
-    const values = Array(rods).fill(0);
-
-    beads.forEach((bead) => {
-      if (bead.section === "upper") {
-        // 1 upper bead worth 5 - active when moved down (positionY > 40)
-        if (bead.positionY > 40) {
-          values[bead.rod] += 5;
-        }
-      } else {
-        // 4 lower beads worth 1 each - active when moved up (positionY < 90)
-        if (bead.positionY < 90) {
-          values[bead.rod] += 1;
-        }
-      }
-    });
-
-    const value = values.reduce(
-      (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
-      0
-    );
-
+    const value = calculateValue(beads);
     onValueChange?.(value);
-  }, [beads, rods]);
+  }, [beads, rods, onValueChange]);
 
   // Animate beads to target value
   useEffect(() => {
@@ -136,26 +159,61 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
     const rect = svg.getBoundingClientRect();
     const mouseY = e.clientY - rect.top;
 
-    setBeads((prevBeads) =>
-      prevBeads.map((bead) => {
-        if (bead.id === draggingBead) {
-          let minY, maxY;
+    setBeads((prevBeads) => {
+      const draggedBead = prevBeads.find((b) => b.id === draggingBead);
+      if (!draggedBead) return prevBeads;
 
-          if (bead.section === "upper") {
-            minY = 10;
-            maxY = 55;
+      let minY, maxY;
+
+      if (draggedBead.section === "upper") {
+        minY = 10;
+        maxY = 55;
+      } else {
+        minY = 75;
+        maxY = 190;
+      }
+
+      const rawPosition = mouseY - dragOffset;
+      let constrainedPosition = Math.max(minY, Math.min(maxY, rawPosition));
+
+      // Get other beads in the same rod and section
+      const otherBeads = prevBeads.filter(
+        (b) =>
+          b.rod === draggedBead.rod &&
+          b.section === draggedBead.section &&
+          b.id !== draggingBead
+      );
+
+      // Check for collisions with other beads
+      for (const otherBead of otherBeads) {
+        const distance = Math.abs(constrainedPosition - otherBead.positionY);
+        const minDistance = BEAD_SIZE + 2; // Add 2px gap to prevent touching
+
+        // If bead would overlap, push it away
+        if (distance < minDistance) {
+          if (constrainedPosition < otherBead.positionY) {
+            // Dragging upward, constrain to above the other bead
+            constrainedPosition = Math.max(
+              minY,
+              otherBead.positionY - minDistance
+            );
           } else {
-            // Lower beads: can move from near divider to bottom
-            minY = 75;
-            maxY = 190;
+            // Dragging downward, constrain to below the other bead
+            constrainedPosition = Math.min(
+              maxY,
+              otherBead.positionY + minDistance
+            );
           }
+        }
+      }
 
-          const newPosition = Math.max(minY, Math.min(maxY, mouseY - dragOffset));
-          return { ...bead, positionY: newPosition };
+      return prevBeads.map((bead) => {
+        if (bead.id === draggingBead) {
+          return { ...bead, positionY: constrainedPosition };
         }
         return bead;
-      })
-    );
+      });
+    });
   };
 
   const handleMouseUp = () => {
@@ -290,28 +348,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       <div className="text-center">
         <p className="text-sm text-slate-600 mb-2">Current Value</p>
         <p className="text-4xl font-bold text-indigo-600">
-          {(() => {
-            const values = Array(rods).fill(0);
-
-            beads.forEach((bead) => {
-              if (bead.section === "upper") {
-                // 1 upper bead worth 5 - active when positionY > 40
-                if (bead.positionY > 40) {
-                  values[bead.rod] += 5;
-                }
-              } else {
-                // 4 lower beads worth 1 each - active when positionY < 90
-                if (bead.positionY < 90) {
-                  values[bead.rod] += 1;
-                }
-              }
-            });
-
-            return values.reduce(
-              (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
-              0
-            );
-          })()}
+          {calculateValue(beads)}
         </p>
       </div>
     </div>
