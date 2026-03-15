@@ -119,10 +119,14 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   const handleMouseDown = (
     beadId: string,
     clientY: number,
-    currentY: number
+    svgRect: DOMRect
   ) => {
     setDraggingBead(beadId);
-    setDragOffset(clientY - currentY);
+    const svgY = clientY - svgRect.top;
+    const bead = beads.find((b) => b.id === beadId);
+    if (bead) {
+      setDragOffset(svgY - bead.positionY);
+    }
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -239,7 +243,8 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                           : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
                     }}
                     onMouseDown={(e) =>
-                      handleMouseDown(bead.id, e.clientY, bead.positionY)
+                      svgRef.current &&
+                      handleMouseDown(bead.id, e.clientY, svgRef.current.getBoundingClientRect())
                     }
                   />
                 ))}
@@ -271,7 +276,8 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                           : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
                     }}
                     onMouseDown={(e) =>
-                      handleMouseDown(bead.id, e.clientY, bead.positionY)
+                      svgRef.current &&
+                      handleMouseDown(bead.id, e.clientY, svgRef.current.getBoundingClientRect())
                     }
                   />
                 ))}
