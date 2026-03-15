@@ -176,8 +176,18 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         minY = 10;
         maxY = 55;
       } else {
+        // Lower beads have individual constraints to prevent hiding
         minY = 75;
         maxY = 190;
+
+        // Bead 3 (index 2) has max height limit at 3rd line from top
+        if (draggedBead.beadIndex === 2) {
+          maxY = 115; // Cannot go higher than this
+        }
+        // Bead 4 (index 3) has max height limit at 2nd line from bottom
+        if (draggedBead.beadIndex === 3) {
+          maxY = 95; // Cannot go higher than this
+        }
       }
 
       const rawPosition = mouseY - dragOffset;
