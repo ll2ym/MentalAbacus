@@ -24,7 +24,7 @@ const POSITIONS = {
   UPPER_OFF: 10,
   UPPER_ON: 50,
   LOWER_OFF_BASE: 190,
-  LOWER_ON_BASE: 75,
+  LOWER_ON_BASE: 130, // Can only travel up 3x bead size (190 - 60 = 130)
   BEAD_SIZE: 20,
 };
 
