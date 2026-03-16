@@ -121,25 +121,19 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
     if (bead.section === "upper") {
       return bead.isActive ? POSITIONS.UPPER_ON : POSITIONS.UPPER_OFF;
     } else {
-      // Lower beads with individual max vertical constraints
-      const maxVerticalPositions = {
-        0: 69, // Bead 1 max vertical position
-        1: 89, // Bead 2 max vertical position
-        2: 109, // Bead 3 max vertical position (estimated)
-        3: 129, // Bead 4 max vertical position (estimated)
+      // Lower beads - each has a fixed active position
+      const activePositions = {
+        0: 69, // Bead 1 active position
+        1: 89, // Bead 2 active position
+        2: 109, // Bead 3 active position
+        3: 129, // Bead 4 active position
       };
 
       if (bead.isActive) {
-        // Calculate position based on how many lower beads are active
-        const rodBeads = beads.filter((b) => b.rod === bead.rod && b.section === "lower");
-        const activeBefore = rodBeads
-          .filter((b) => b.beadIndex < bead.beadIndex && b.isActive)
-          .length;
-        const stackedPosition = POSITIONS.LOWER_ON_BASE - activeBefore * BEAD_SIZE;
-        // Don't go higher than the max vertical position for this bead
-        const maxPos = maxVerticalPositions[bead.beadIndex as keyof typeof maxVerticalPositions] || 190;
-        return Math.max(stackedPosition, maxPos);
+        // Use the fixed active position for this bead
+        return activePositions[bead.beadIndex as keyof typeof activePositions] || 190;
       }
+      // Inactive position - resting at bottom
       return POSITIONS.LOWER_OFF_BASE - bead.beadIndex * BEAD_SIZE;
     }
   };
