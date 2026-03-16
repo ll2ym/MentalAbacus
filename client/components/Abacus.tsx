@@ -86,22 +86,23 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   // Animate beads to target value
   useEffect(() => {
     if (targetValue !== undefined && targetValue >= 0) {
-      const valueStr = targetValue.toString().padStart(rods, "0");
-      const newBeads = beads.map((bead) => {
-        const digit = parseInt(valueStr[bead.rod]);
+      setBeads((prevBeads) => {
+        const valueStr = targetValue.toString().padStart(rods, "0");
+        return prevBeads.map((bead) => {
+          const digit = parseInt(valueStr[bead.rod]);
 
-        if (bead.section === "upper") {
-          // Upper bead: active if digit >= 5
-          return { ...bead, isActive: digit >= 5 };
-        } else {
-          // Lower beads: activate first N beads where N = digit % 5
-          const lowerValue = digit % 5;
-          return { ...bead, isActive: bead.beadIndex < lowerValue };
-        }
+          if (bead.section === "upper") {
+            // Upper bead: active if digit >= 5
+            return { ...bead, isActive: digit >= 5 };
+          } else {
+            // Lower beads: activate first N beads where N = digit % 5
+            const lowerValue = digit % 5;
+            return { ...bead, isActive: bead.beadIndex < lowerValue };
+          }
+        });
       });
-      setBeads(newBeads);
     }
-  }, [targetValue, rods, beads]);
+  }, [targetValue, rods]);
 
   const handleBeadClick = (beadId: string) => {
     setBeads((prevBeads) =>
