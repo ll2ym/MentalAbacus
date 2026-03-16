@@ -24,7 +24,7 @@ const POSITIONS = {
   UPPER_OFF: 10,
   UPPER_ON: 130, // Maximum vertical travel is 120 pixels (10 + 120 = 130)
   LOWER_OFF_BASE: 190,
-  LOWER_ON_BASE: 52, // First bead touches the divider at Y=72 (72 - 20 = 52)
+  LOWER_ON_BASE: 45, // First bead at Y = 45
   BEAD_SIZE: 20,
   DIVIDER_Y: 72, // Visual divider position
 };
