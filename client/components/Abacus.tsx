@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 interface Bead {
   id: string;
   rod: number;
-  section: "upper" | "lower"; // upper = 2 beads (worth 5 each), lower = 5 beads (worth 1 each)
+  section: "upper" | "lower";
   beadIndex: number;
-  positionY: number;
+  isActive: boolean; // true = on/at divider, false = off/at resting position
 }
 
 interface AbacusProps {
@@ -17,103 +17,69 @@ interface AbacusProps {
 const DEFAULT_RODS = 10;
 const UPPER_BEADS = 1;
 const LOWER_BEADS = 4;
-const BEAD_RADIUS = 10;
-const ROD_WIDTH = 30;
-const ROD_SPACING = 40;
-const DIVIDER_Y = 70;
-const UPPER_RAIL_HEIGHT = 50;
-const LOWER_RAIL_HEIGHT = 100;
 const BEAD_SIZE = 20;
-const WOOD_COLOR = "#8B6F47"; // Brown wooden color
+const WOOD_COLOR = "#8B6F47";
+
+const POSITIONS = {
+  UPPER_OFF: 10,
+  UPPER_ON: 50,
+  LOWER_OFF_BASE: 190,
+  LOWER_ON_BASE: 75,
+  BEAD_SIZE: 20,
+};
 
 export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
-  const [draggingBead, setDraggingBead] = useState<string | null>(null);
-  const [dragOffset, setDragOffset] = useState(0);
-  const svgRef = useRef<SVGSVGElement>(null);
-
-  // Helper function to calculate value from beads
-  const calculateValue = (beadsList: Bead[]): number => {
-    const values = Array(rods).fill(0);
-
-    for (let rod = 0; rod < rods; rod++) {
-      // Upper bead
-      const upperBead = beadsList.find(
-        (b) => b.rod === rod && b.section === "upper"
-      );
-      if (upperBead && upperBead.positionY > 40) {
-        values[rod] += 5;
-      }
-
-      // Lower beads - count contiguous group near divider
-      const lowerBeads = beadsList
-        .filter((b) => b.rod === rod && b.section === "lower")
-        .sort((a, b) => a.positionY - b.positionY);
-
-      // Find the topmost bead position and count beads in contiguous group
-      let countedBeads = 0;
-      for (let i = 0; i < lowerBeads.length; i++) {
-        const bead = lowerBeads[i];
-
-        // If this is the first bead (topmost), check if it's near divider
-        if (i === 0) {
-          if (bead.positionY < 90) {
-            countedBeads = 1;
-          } else {
-            break; // No beads near divider
-          }
-        } else {
-          // For subsequent beads, check if touching previous bead
-          const prevBead = lowerBeads[i - 1];
-          if (Math.abs(bead.positionY - prevBead.positionY) <= BEAD_SIZE + 2) {
-            countedBeads++;
-          } else {
-            break; // Gap in chain, stop counting
-          }
-        }
-      }
-
-      values[rod] += countedBeads;
-    }
-
-    return values.reduce(
-      (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
-      0
-    );
-  };
 
   // Initialize beads
   useEffect(() => {
     const initialBeads: Bead[] = [];
     for (let rod = 0; rod < rods; rod++) {
-      // Upper section - 1 bead (worth 5) - starts at TOP
-      for (let i = 0; i < UPPER_BEADS; i++) {
-        initialBeads.push({
-          id: `${rod}-upper-${i}`,
-          rod,
-          section: "upper",
-          beadIndex: i,
-          positionY: 10,
-        });
-      }
+      // Upper bead
+      initialBeads.push({
+        id: `${rod}-upper-0`,
+        rod,
+        section: "upper",
+        beadIndex: 0,
+        isActive: false,
+      });
 
-      // Lower section - 4 beads (worth 1 each) - start at BOTTOM
+      // Lower beads
       for (let i = 0; i < LOWER_BEADS; i++) {
         initialBeads.push({
           id: `${rod}-lower-${i}`,
           rod,
           section: "lower",
           beadIndex: i,
-          positionY: 190 - i * BEAD_SIZE, // Start from bottom and go up
+          isActive: false,
         });
       }
     }
     setBeads(initialBeads);
   }, [rods]);
 
-  // Calculate current value from bead positions
+  // Calculate current value
   useEffect(() => {
-    const value = calculateValue(beads);
+    const values = Array(rods).fill(0);
+
+    for (let rod = 0; rod < rods; rod++) {
+      // Upper bead
+      const upperBead = beads.find((b) => b.rod === rod && b.section === "upper");
+      if (upperBead?.isActive) {
+        values[rod] += 5;
+      }
+
+      // Lower beads - count active ones
+      const lowerBeads = beads.filter((b) => b.rod === rod && b.section === "lower");
+      const activeCount = lowerBeads.filter((b) => b.isActive).length;
+      values[rod] += activeCount;
+    }
+
+    const value = values.reduce(
+      (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
+      0
+    );
+
     onValueChange?.(value);
   }, [beads, rods, onValueChange]);
 
@@ -125,155 +91,95 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         const digit = parseInt(valueStr[bead.rod]);
 
         if (bead.section === "upper") {
-          // 1 upper bead worth 5
-          const upperActive = Math.floor(digit / 5) > 0;
-          return {
-            ...bead,
-            positionY: upperActive ? 50 : 10,
-          };
+          // Upper bead: active if digit >= 5
+          return { ...bead, isActive: digit >= 5 };
         } else {
-          // 4 lower beads worth 1 each - start at bottom, move up toward divider
+          // Lower beads: activate first N beads where N = digit % 5
           const lowerValue = digit % 5;
-          const isActive = bead.beadIndex < lowerValue;
-          // Active beads move up near divider, inactive stay at bottom
-          return {
-            ...bead,
-            positionY: isActive ? 75 : 190 - bead.beadIndex * BEAD_SIZE,
-          };
+          return { ...bead, isActive: bead.beadIndex < lowerValue };
         }
       });
       setBeads(newBeads);
     }
-  }, [targetValue, rods]);
+  }, [targetValue, rods, beads]);
 
-  const handleMouseDown = (
-    beadId: string,
-    clientY: number,
-    svgRect: DOMRect
-  ) => {
-    setDraggingBead(beadId);
-    const svgY = clientY - svgRect.top;
-    const bead = beads.find((b) => b.id === beadId);
-    if (bead) {
-      setDragOffset(svgY - bead.positionY);
+  const handleBeadClick = (beadId: string) => {
+    setBeads((prevBeads) =>
+      prevBeads.map((bead) => {
+        if (bead.id === beadId) {
+          // Toggle active state
+          return { ...bead, isActive: !bead.isActive };
+        }
+        return bead;
+      })
+    );
+  };
+
+  const getBeadPositionY = (bead: Bead): number => {
+    if (bead.section === "upper") {
+      return bead.isActive ? POSITIONS.UPPER_ON : POSITIONS.UPPER_OFF;
+    } else {
+      // Lower beads stack at the divider when active
+      if (bead.isActive) {
+        // Calculate position based on how many lower beads are active
+        const rodBeads = beads.filter((b) => b.rod === bead.rod && b.section === "lower");
+        const activeBefore = rodBeads
+          .filter((b) => b.beadIndex < bead.beadIndex && b.isActive)
+          .length;
+        return POSITIONS.LOWER_ON_BASE - activeBefore * BEAD_SIZE;
+      }
+      return POSITIONS.LOWER_OFF_BASE - bead.beadIndex * BEAD_SIZE;
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!draggingBead || !svgRef.current) return;
-
-    const svg = svgRef.current;
-    const rect = svg.getBoundingClientRect();
-    const mouseY = e.clientY - rect.top;
-
-    setBeads((prevBeads) => {
-      const draggedBead = prevBeads.find((b) => b.id === draggingBead);
-      if (!draggedBead) return prevBeads;
-
-      let minY, maxY;
-
-      if (draggedBead.section === "upper") {
-        minY = 10;
-        maxY = 55;
-      } else {
-        // Lower beads have individual constraints to prevent hiding
-        minY = 75;
-        maxY = 190;
-
-        // Bead 3 (index 2) has max height limit at 3rd line from top
-        if (draggedBead.beadIndex === 2) {
-          maxY = 115; // Cannot go higher than this
-        }
-        // Bead 4 (index 3) has max height limit at 2nd line from bottom
-        if (draggedBead.beadIndex === 3) {
-          maxY = 95; // Cannot go higher than this
-        }
-      }
-
-      const rawPosition = mouseY - dragOffset;
-      let constrainedPosition = Math.max(minY, Math.min(maxY, rawPosition));
-
-      // Get other beads in the same rod and section
-      const otherBeads = prevBeads.filter(
-        (b) =>
-          b.rod === draggedBead.rod &&
-          b.section === draggedBead.section &&
-          b.id !== draggingBead
-      );
-
-      // Check for collisions with other beads
-      for (const otherBead of otherBeads) {
-        const distance = Math.abs(constrainedPosition - otherBead.positionY);
-        const minDistance = BEAD_SIZE + 2; // Add 2px gap to prevent touching
-
-        // If bead would overlap, push it away
-        if (distance < minDistance) {
-          if (constrainedPosition < otherBead.positionY) {
-            // Dragging upward, constrain to above the other bead
-            constrainedPosition = Math.max(
-              minY,
-              otherBead.positionY - minDistance
-            );
-          } else {
-            // Dragging downward, constrain to below the other bead
-            constrainedPosition = Math.min(
-              maxY,
-              otherBead.positionY + minDistance
-            );
-          }
-        }
-      }
-
-      return prevBeads.map((bead) => {
-        if (bead.id === draggingBead) {
-          return { ...bead, positionY: constrainedPosition };
-        }
-        return bead;
-      });
-    });
+  const getRodX = (rodIndex: number): number => {
+    return 30 + rodIndex * 40;
   };
 
-  const handleMouseUp = () => {
-    setDraggingBead(null);
-  };
-
-  const getRodX = (rodIndex: number) => {
-    return 30 + rodIndex * ROD_SPACING;
-  };
-
-  const svgWidth = 30 + rods * ROD_SPACING + 30;
+  const svgWidth = 30 + rods * 40 + 30;
 
   return (
     <div className="flex flex-col items-center gap-6">
       <svg
-        ref={svgRef}
         width={svgWidth}
         height={250}
-        className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl"
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"40\" height=\"40\"><rect fill=\"%23d97706\" opacity=\"0.05\" width=\"40\" height=\"40\"/><line x1=\"0\" y1=\"0\" x2=\"40\" y2=\"0\" stroke=\"%23d97706\" opacity=\"0.1\"/></svg>')" }}
+        className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl cursor-pointer"
       >
-        {/* Frame decorations - left and right edges */}
+        {/* Background */}
+        <defs>
+          <linearGradient id="frameGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#fef3c7" />
+            <stop offset="100%" stopColor="#fed7aa" />
+          </linearGradient>
+        </defs>
+        <rect width={svgWidth} height={250} fill="url(#frameGradient)" />
+
+        {/* Frame edges */}
         <rect x="10" y="10" width="6" height="230" fill="#92400e" rx="3" />
-        <rect
-          x={svgWidth - 16}
-          y="10"
-          width="6"
-          height="230"
-          fill="#92400e"
-          rx="3"
-        />
+        <rect x={svgWidth - 16} y="10" width="6" height="230" fill="#92400e" rx="3" />
 
         {/* Upper rail */}
         <rect x="15" y="20" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
 
         {/* Divider bar */}
-        <rect x="15" y={DIVIDER_Y - 2} width={svgWidth - 40} height="8" fill="#92400e" rx="2" />
+        <rect x="15" y="68" width={svgWidth - 40} height="8" fill="#92400e" rx="2" />
 
         {/* Lower rail */}
         <rect x="15" y="215" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
+
+        {/* Divider lines (visual guides) */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <line
+            key={`guide-${i}`}
+            x1="15"
+            y1={22 + i * 47}
+            x2={svgWidth - 15}
+            y2={22 + i * 47}
+            stroke="#d97706"
+            strokeWidth="1"
+            opacity="0.3"
+          />
+        ))}
 
         {/* Draw rods and beads */}
         {Array.from({ length: rods }).map((_, rodIndex) => {
@@ -291,72 +197,58 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                 strokeWidth="1.5"
               />
 
-              {/* Lower beads FIRST (render behind) - sorted descending so beads at bottom render first, top beads render last (on top) */}
+              {/* Lower beads FIRST (render behind) */}
               {beads
                 .filter((bead) => bead.rod === rodIndex && bead.section === "lower")
-                .sort((a, b) => b.positionY - a.positionY)
-                .map((bead) => (
-                  <rect
-                    key={bead.id}
-                    x={rodX - BEAD_RADIUS}
-                    y={bead.positionY}
-                    width={BEAD_SIZE}
-                    height={BEAD_SIZE}
-                    rx="4"
-                    fill={WOOD_COLOR}
-                    stroke="#ffffff"
-                    strokeWidth="1.5"
-                    style={{
-                      cursor:
-                        draggingBead === bead.id ? "grabbing" : "grab",
-                      transition:
-                        draggingBead === bead.id
-                          ? "none"
-                          : "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                      filter:
-                        draggingBead === bead.id
-                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.3))"
-                          : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
-                    }}
-                    onMouseDown={(e) =>
-                      svgRef.current &&
-                      handleMouseDown(bead.id, e.clientY, svgRef.current.getBoundingClientRect())
-                    }
-                  />
-                ))}
+                .sort((a, b) => b.beadIndex - a.beadIndex)
+                .map((bead) => {
+                  const posY = getBeadPositionY(bead);
+                  return (
+                    <rect
+                      key={bead.id}
+                      x={rodX - 10}
+                      y={posY}
+                      width={BEAD_SIZE}
+                      height={BEAD_SIZE}
+                      rx="4"
+                      fill={WOOD_COLOR}
+                      stroke="#ffffff"
+                      strokeWidth="1.5"
+                      style={{
+                        cursor: "pointer",
+                        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        opacity: bead.isActive ? 1 : 0.9,
+                      }}
+                      onClick={() => handleBeadClick(bead.id)}
+                    />
+                  );
+                })}
 
-              {/* Upper beads LAST (render on top) */}
+              {/* Upper bead LAST (render on top) */}
               {beads
                 .filter((bead) => bead.rod === rodIndex && bead.section === "upper")
-                .map((bead) => (
-                  <rect
-                    key={bead.id}
-                    x={rodX - BEAD_RADIUS}
-                    y={bead.positionY}
-                    width={BEAD_SIZE}
-                    height={BEAD_SIZE}
-                    rx="4"
-                    fill={WOOD_COLOR}
-                    stroke="#ffffff"
-                    strokeWidth="1.5"
-                    style={{
-                      cursor:
-                        draggingBead === bead.id ? "grabbing" : "grab",
-                      transition:
-                        draggingBead === bead.id
-                          ? "none"
-                          : "all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                      filter:
-                        draggingBead === bead.id
-                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.3))"
-                          : "drop-shadow(0 2px 4px rgba(0,0,0,0.15))",
-                    }}
-                    onMouseDown={(e) =>
-                      svgRef.current &&
-                      handleMouseDown(bead.id, e.clientY, svgRef.current.getBoundingClientRect())
-                    }
-                  />
-                ))}
+                .map((bead) => {
+                  const posY = getBeadPositionY(bead);
+                  return (
+                    <rect
+                      key={bead.id}
+                      x={rodX - 10}
+                      y={posY}
+                      width={BEAD_SIZE}
+                      height={BEAD_SIZE}
+                      rx="4"
+                      fill={WOOD_COLOR}
+                      stroke="#ffffff"
+                      strokeWidth="1.5"
+                      style={{
+                        cursor: "pointer",
+                        transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        opacity: bead.isActive ? 1 : 0.9,
+                      }}
+                      onClick={() => handleBeadClick(bead.id)}
+                    />
+                  );
+                })}
             </g>
           );
         })}
@@ -366,7 +258,26 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       <div className="text-center">
         <p className="text-sm text-slate-600 mb-2">Current Value</p>
         <p className="text-4xl font-bold text-indigo-600">
-          {calculateValue(beads)}
+          {(() => {
+            const values = Array(rods).fill(0);
+            for (let rod = 0; rod < rods; rod++) {
+              const upperBead = beads.find(
+                (b) => b.rod === rod && b.section === "upper"
+              );
+              if (upperBead?.isActive) {
+                values[rod] += 5;
+              }
+              const lowerBeads = beads.filter(
+                (b) => b.rod === rod && b.section === "lower"
+              );
+              const activeCount = lowerBeads.filter((b) => b.isActive).length;
+              values[rod] += activeCount;
+            }
+            return values.reduce(
+              (sum, digit, idx) => sum + digit * Math.pow(10, rods - 1 - idx),
+              0
+            );
+          })()}
         </p>
       </div>
     </div>
