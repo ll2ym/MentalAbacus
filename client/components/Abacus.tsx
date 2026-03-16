@@ -22,7 +22,7 @@ const WOOD_COLOR = "#8B6F47";
 
 const POSITIONS = {
   UPPER_OFF: 10,
-  UPPER_ON: 50,
+  UPPER_ON: 130, // Maximum vertical travel is 120 pixels (10 + 120 = 130)
   LOWER_OFF_BASE: 190,
   LOWER_ON_BASE: 130, // Can only travel up 3x bead size (190 - 60 = 130)
   BEAD_SIZE: 20,
