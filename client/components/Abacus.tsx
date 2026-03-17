@@ -22,7 +22,7 @@ const WOOD_COLOR = "#8B6F47";
 
 const POSITIONS = {
   UPPER_OFF: 10,
-  UPPER_ON: 130, // Maximum vertical travel is 120 pixels (10 + 120 = 130)
+  UPPER_ON: 52, // Can only travel down to the divider
   LOWER_OFF_BASE: 190,
   LOWER_ON_BASE: 65, // First bead at Y = 65
   BEAD_SIZE: 20,
