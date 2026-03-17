@@ -23,7 +23,7 @@ const WOOD_COLOR = "#8B6F47";
 const POSITIONS = {
   UPPER_OFF: 10,
   UPPER_ON: 52, // Can only travel down to the divider
-  LOWER_OFF_BASE: 195, // Bead 0 at Y=195, with others stacking up: bead 1 at 175, bead 2 at 155, bead 3 at 135
+  LOWER_OFF_BASE: 175, // Beads rest at bottom: bead 0 at 175, bead 1 at 155, bead 2 at 135, bead 3 at 115
   LOWER_ON_BASE: 65, // First bead at Y = 65
   BEAD_SIZE: 20,
   DIVIDER_Y: 72, // Visual divider position
