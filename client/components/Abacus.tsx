@@ -31,6 +31,7 @@ const POSITIONS = {
 
 export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
+  const [valueRevealed, setValueRevealed] = useState(false);
 
   // Initialize beads
   useEffect(() => {
@@ -261,9 +262,13 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       </svg>
 
       {/* Value display */}
-      <div className="text-center">
-        <p className="text-sm text-slate-600 mb-2">Current Value</p>
-        <p className="text-4xl font-bold text-indigo-600">
+      <div className="text-center cursor-pointer" onClick={() => setValueRevealed(!valueRevealed)}>
+        <p className="text-sm text-slate-600 mb-2">Current Value {valueRevealed ? '(click to hide)' : '(click to reveal)'}</p>
+        <p
+          className={`text-4xl font-bold text-indigo-600 transition-all duration-300 ${
+            valueRevealed ? 'blur-none' : 'blur-lg'
+          }`}
+        >
           {(() => {
             const values = Array(rods).fill(0);
             for (let rod = 0; rod < rods; rod++) {

@@ -88,15 +88,6 @@ export default function Index() {
                   </div>
                 )}
 
-                {solvedValue !== null && (
-                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                    <p className="text-sm text-green-700 mb-2">Result:</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      {solvedValue}
-                    </p>
-                  </div>
-                )}
-
                 <div className="flex gap-3">
                   <button
                     onClick={handleSolveEquation}
@@ -196,15 +187,6 @@ export default function Index() {
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-2 text-red-700 text-xs">
                   {error}
-                </div>
-              )}
-
-              {solvedValue !== null && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                  <p className="text-xs text-green-700 mb-1">Result:</p>
-                  <p className="text-2xl font-bold text-green-600">
-                    {solvedValue}
-                  </p>
                 </div>
               )}
 
