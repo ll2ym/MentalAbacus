@@ -123,12 +123,12 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       return bead.isActive ? POSITIONS.UPPER_ON : POSITIONS.UPPER_OFF;
     } else {
       // Lower beads - each has a fixed active position
-      // When active, beads move UP towards the divider (Y=72)
+      // When active, beads move UP towards the divider
       const activePositions = {
-        0: 52, // Bead 1 active position (topmost, closest to divider)
-        1: 72, // Bead 2 active position
-        2: 92, // Bead 3 active position
-        3: 112, // Bead 4 active position (bottommost, furthest from divider)
+        0: 73, // Bead 1 active position (topmost, closest to divider)
+        1: 93, // Bead 2 active position
+        2: 113, // Bead 3 active position
+        3: 123, // Bead 4 active position (bottommost, furthest from divider)
       };
 
       if (bead.isActive) {
@@ -136,9 +136,8 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         return activePositions[bead.beadIndex as keyof typeof activePositions] || 190;
       }
       // Inactive position - all beads stack at bottom without overlapping
-      // Each bead is 20px tall, so spacing must be 20px minimum
-      // Bead 0 at Y=150, Bead 1 at Y=170, Bead 2 at Y=190, Bead 3 at Y=210
-      return 150 + bead.beadIndex * 20;
+      // Bead 0 at Y=153, Bead 1 at Y=173, Bead 2 at Y=193, Bead 3 at Y=213
+      return 153 + bead.beadIndex * 20;
     }
   };
 
