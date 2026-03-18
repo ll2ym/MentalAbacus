@@ -123,11 +123,12 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       return bead.isActive ? POSITIONS.UPPER_ON : POSITIONS.UPPER_OFF;
     } else {
       // Lower beads - each has a fixed active position
+      // When active, beads move UP towards the divider (Y=72)
       const activePositions = {
-        0: 129, // Bead 1 active position (topmost)
-        1: 109, // Bead 2 active position
-        2: 89, // Bead 3 active position
-        3: 69, // Bead 4 active position (bottommost)
+        0: 52, // Bead 1 active position (topmost, closest to divider)
+        1: 72, // Bead 2 active position
+        2: 92, // Bead 3 active position
+        3: 112, // Bead 4 active position (bottommost, furthest from divider)
       };
 
       if (bead.isActive) {
