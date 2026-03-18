@@ -134,9 +134,10 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         // Use the fixed active position for this bead
         return activePositions[bead.beadIndex as keyof typeof activePositions] || 190;
       }
-      // Inactive position - all beads stack at bottom with smaller spacing
-      // Bead 0 (top) at Y=190, Bead 1 at Y=202, Bead 2 at Y=214, Bead 3 at Y=226
-      return 190 + bead.beadIndex * 12;
+      // Inactive position - all beads stack at bottom without overlapping
+      // Each bead is 20px tall, so spacing must be 20px minimum
+      // Bead 0 at Y=150, Bead 1 at Y=170, Bead 2 at Y=190, Bead 3 at Y=210
+      return 150 + bead.beadIndex * 20;
     }
   };
 
