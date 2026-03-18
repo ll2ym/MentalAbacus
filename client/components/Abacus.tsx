@@ -124,18 +124,19 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
     } else {
       // Lower beads - each has a fixed active position
       const activePositions = {
-        0: 129, // Bead 1 active position
+        0: 129, // Bead 1 active position (topmost)
         1: 109, // Bead 2 active position
         2: 89, // Bead 3 active position
-        3: 69, // Bead 4 active position
+        3: 69, // Bead 4 active position (bottommost)
       };
 
       if (bead.isActive) {
         // Use the fixed active position for this bead
         return activePositions[bead.beadIndex as keyof typeof activePositions] || 190;
       }
-      // Inactive position - resting at bottom
-      return POSITIONS.LOWER_OFF_BASE - bead.beadIndex * BEAD_SIZE;
+      // Inactive position - all beads stack at bottom with smaller spacing
+      // Bead 0 (top) at Y=190, Bead 1 at Y=202, Bead 2 at Y=214, Bead 3 at Y=226
+      return 190 + bead.beadIndex * 12;
     }
   };
 
