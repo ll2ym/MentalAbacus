@@ -43,6 +43,46 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      \n
+      <div className="absolute top-4 right-4 z-50">
+        <div className="relative inline-block text-left">
+          <select className="appearance-none bg-white/20 backdrop-blur-sm text-white border border-white/30 hover:bg-white/30 rounded-full px-4 py-2 pr-8 outline-none cursor-pointer font-medium transition-all text-sm">
+            <option value="en" className="text-black">
+              🇬🇧 English
+            </option>
+            <option value="de" className="text-black">
+              🇩🇪 Deutsch
+            </option>
+            <option value="ru" className="text-black">
+              🇷🇺 Русский
+            </option>
+            <option value="tr" className="text-black">
+              🇹🇷 Türkçe
+            </option>
+            <option value="ar" className="text-black">
+              🇸🇦 العربية
+            </option>
+            <option value="zh" className="text-black">
+              🇨🇳 中文
+            </option>
+            <option value="fr" className="text-black">
+              🇫🇷 Français
+            </option>
+            <option value="es" className="text-black">
+              🇪🇸 Español
+            </option>
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
+            <svg
+              className="fill-current h-4 w-4"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
+              <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+            </svg>
+          </div>
+        </div>
+      </div>
       {/* Header - Hidden on mobile */}
       <header className="hidden md:block bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-6 py-8">
@@ -52,7 +92,6 @@ export default function Index() {
           </p>
         </div>
       </header>
-
       {/* Main content */}
       <main className="max-w-7xl mx-auto px-4 py-4 md:py-8">
         {/* Desktop: 2-column grid */}
@@ -114,7 +153,9 @@ export default function Index() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-600 font-bold">2.</span>
-                      <span>Watch the abacus beads move to show the result</span>
+                      <span>
+                        Watch the abacus beads move to show the result
+                      </span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-600 font-bold">3.</span>
@@ -154,13 +195,13 @@ export default function Index() {
         {/* Mobile: Stacked layout */}
         <div className="md:hidden flex flex-col gap-4">
           {/* Top - Abacus */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-100">
+          <div className="p-4">
             <div
               ref={abacusRef}
               className="flex justify-center overflow-x-auto mb-4"
             >
               <Abacus
-                rods={9}
+                rods={8}
                 targetValue={solvedValue ?? undefined}
                 onValueChange={setAbacusValue}
               />
@@ -168,7 +209,7 @@ export default function Index() {
           </div>
 
           {/* Bottom - Input */}
-          <div className="bg-white rounded-2xl shadow-lg p-4 border border-slate-100">
+          <div className="p-4">
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-2">
@@ -208,6 +249,20 @@ export default function Index() {
           </div>
         </div>
       </main>
+      \n
+      {/* Footer */}
+      <footer className="w-full text-center py-6 mt-auto opacity-50 text-sm font-medium">
+        &copy; 2026{" "}
+        <a
+          href="http://www.odinaev.de"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:underline text-blue-600"
+        >
+          Masrur Odinaev
+        </a>
+      </footer>
+      \n{" "}
     </div>
   );
 }

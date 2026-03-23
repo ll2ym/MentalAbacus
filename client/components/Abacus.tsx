@@ -173,7 +173,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
     return 30 + rodIndex * 40;
   };
 
-  const svgWidth = 30 + rods * 40 + 10;
+  const svgWidth = 20 + rods * 40;
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -196,13 +196,13 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         <rect x={svgWidth - 16} y="10" width="6" height="255" fill="#92400e" rx="3" />
 
         {/* Upper rail */}
-        <rect x="15" y="20" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
+        <rect x="10" y="20" width={svgWidth - 20} height="6" fill="#92400e" rx="2" />
 
         {/* Divider bar */}
-        <rect x="15" y="83" width={svgWidth - 30} height="8" fill="#92400e" rx="2" />
+        <rect x="10" y="83" width={svgWidth - 20} height="8" fill="#92400e" rx="2" />
 
         {/* Lower rail */}
-        <rect x="15" y="240" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
+        <rect x="10" y="240" width={svgWidth - 20} height="6" fill="#92400e" rx="2" />
 
         {/* Divider lines (visual guides) */}
         {Array.from({ length: 5 }).map((_, i) => (
@@ -296,7 +296,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         <p className="text-sm text-slate-600 mb-2">Current Value {valueRevealed ? '(click to hide)' : '(click to reveal)'}</p>
         <p
           className={`text-4xl font-bold text-indigo-600 transition-all duration-300 ${
-            valueRevealed ? 'blur-none' : 'blur-lg'
+            valueRevealed ? 'blur-none' : 'blur-md'
           }`}
         >
           {(() => {
