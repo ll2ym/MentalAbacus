@@ -107,15 +107,43 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   }, [targetValue, rods]);
 
   const handleBeadClick = (beadId: string) => {
-    setBeads((prevBeads) =>
-      prevBeads.map((bead) => {
-        if (bead.id === beadId) {
-          // Toggle active state
-          return { ...bead, isActive: !bead.isActive };
+    setBeads((prevBeads) => {
+      const clickedBead = prevBeads.find(b => b.id === beadId);
+      if (!clickedBead) return prevBeads;
+
+      const willBeActive = !clickedBead.isActive;
+
+      return prevBeads.map((bead) => {
+        // If it's a different rod or upper section, only toggle the exact clicked bead
+        if (bead.rod !== clickedBead.rod || bead.section !== clickedBead.section) {
+          if (bead.id === beadId) return { ...bead, isActive: willBeActive };
+          return bead;
         }
+
+        // Upper section on same rod
+        if (clickedBead.section === "upper") {
+          if (bead.id === beadId) return { ...bead, isActive: willBeActive };
+          return bead;
+        }
+
+        // Lower section on same rod: Enforce physical stacking logic
+        if (clickedBead.section === "lower") {
+          if (willBeActive) {
+            // Turning ON: All beads above it (lower index) MUST turn ON too
+            if (bead.beadIndex <= clickedBead.beadIndex) {
+              return { ...bead, isActive: true };
+            }
+          } else {
+            // Turning OFF: All beads below it (higher index) MUST turn OFF too
+            if (bead.beadIndex >= clickedBead.beadIndex) {
+              return { ...bead, isActive: false };
+            }
+          }
+        }
+
         return bead;
-      })
-    );
+      });
+    });
   };
 
   const getBeadPositionY = (bead: Bead): number => {
