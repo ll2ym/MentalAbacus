@@ -168,13 +168,13 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
         <rect x={svgWidth - 16} y="10" width="6" height="230" fill="#92400e" rx="3" />
 
         {/* Upper rail */}
-        <rect x="15" y="20" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
+        <rect x="15" y="20" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
 
         {/* Divider bar */}
-        <rect x="15" y="68" width={svgWidth - 40} height="8" fill="#92400e" rx="2" />
+        <rect x="15" y="68" width={svgWidth - 30} height="8" fill="#92400e" rx="2" />
 
         {/* Lower rail */}
-        <rect x="15" y="215" width={svgWidth - 40} height="6" fill="#92400e" rx="2" />
+        <rect x="15" y="215" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
 
         {/* Divider lines (visual guides) */}
         {Array.from({ length: 5 }).map((_, i) => (
