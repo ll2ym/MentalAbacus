@@ -14,15 +14,15 @@ interface AbacusProps {
   rods?: number;
 }
 
-const DEFAULT_RODS = 10;
+const DEFAULT_RODS = 8;
 const UPPER_BEADS = 1;
 const LOWER_BEADS = 4;
 const BEAD_SIZE = 20;
 const WOOD_COLOR = "#8B6F47";
 
 const POSITIONS = {
-  UPPER_OFF: 10,
-  UPPER_ON: 52, // Can only travel down to the divider
+  UPPER_OFF: 22,
+  UPPER_ON: 61, // Can only travel down to the divider
   LOWER_OFF_BASE: 205, // Beads rest at bottom: bead 0 at 205, bead 1 at 185, bead 2 at 165, bead 3 at 145
   LOWER_ON_BASE: 65, // First bead at Y = 65
   BEAD_SIZE: 20,
@@ -125,10 +125,10 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       // Lower beads - each has a fixed active position
       // When active, beads move UP towards the divider
       const activePositions = {
-        0: 73, // Bead 1 active position (topmost, closest to divider)
-        1: 93, // Bead 2 active position
-        2: 113, // Bead 3 active position
-        3: 123, // Bead 4 active position (bottommost, furthest from divider)
+        0: 93, // Bead 1 active position (topmost, closest to divider)
+        1: 113, // Bead 2 active position
+        2: 133, // Bead 3 active position
+        3: 153, // Bead 4 active position (bottommost, furthest from divider)
       };
 
       if (bead.isActive) {
@@ -137,7 +137,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       }
       // Inactive position - all beads stack at bottom without overlapping
       // Bead 0 at Y=153, Bead 1 at Y=173, Bead 2 at Y=193, Bead 3 at Y=213
-      return 153 + bead.beadIndex * 20;
+      return 160 + bead.beadIndex * 20;
     }
   };
 
@@ -145,13 +145,13 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
     return 30 + rodIndex * 40;
   };
 
-  const svgWidth = 30 + rods * 40 + 30;
+  const svgWidth = 30 + rods * 40 + 10;
 
   return (
     <div className="flex flex-col items-center gap-6">
       <svg
         width={svgWidth}
-        height={250}
+        height={275}
         className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl cursor-pointer"
       >
         {/* Background */}
@@ -161,20 +161,20 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
             <stop offset="100%" stopColor="#fed7aa" />
           </linearGradient>
         </defs>
-        <rect width={svgWidth} height={250} fill="url(#frameGradient)" />
+        <rect width={svgWidth} height={275} fill="url(#frameGradient)" />
 
         {/* Frame edges */}
-        <rect x="10" y="10" width="6" height="230" fill="#92400e" rx="3" />
-        <rect x={svgWidth - 16} y="10" width="6" height="230" fill="#92400e" rx="3" />
+        <rect x="10" y="10" width="6" height="255" fill="#92400e" rx="3" />
+        <rect x={svgWidth - 16} y="10" width="6" height="255" fill="#92400e" rx="3" />
 
         {/* Upper rail */}
         <rect x="15" y="20" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
 
         {/* Divider bar */}
-        <rect x="15" y="68" width={svgWidth - 30} height="8" fill="#92400e" rx="2" />
+        <rect x="15" y="83" width={svgWidth - 30} height="8" fill="#92400e" rx="2" />
 
         {/* Lower rail */}
-        <rect x="15" y="215" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
+        <rect x="15" y="240" width={svgWidth - 30} height="6" fill="#92400e" rx="2" />
 
         {/* Divider lines (visual guides) */}
         {Array.from({ length: 5 }).map((_, i) => (
@@ -201,7 +201,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
                 x1={rodX}
                 y1="20"
                 x2={rodX}
-                y2="220"
+                y2="245"
                 stroke="#92400e"
                 strokeWidth="1.5"
               />
