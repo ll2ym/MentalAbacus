@@ -9,6 +9,9 @@ interface Bead {
 }
 
 interface AbacusProps {
+  currentValueText?: string;
+  clickToRevealText?: string;
+  clickToHideText?: string;
   targetValue?: number;
   onValueChange?: (value: number) => void;
   rods?: number;
@@ -29,7 +32,7 @@ const POSITIONS = {
   DIVIDER_Y: 72, // Visual divider position
 };
 
-export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: AbacusProps) {
+export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS, currentValueText = "Current Value", clickToRevealText = "(click to reveal)", clickToHideText = "(click to hide)" }: AbacusProps) {
   const [beads, setBeads] = useState<Bead[]>([]);
   const [valueRevealed, setValueRevealed] = useState(false);
 
@@ -293,7 +296,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
 
       {/* Value display */}
       <div className="text-center cursor-pointer" onClick={() => setValueRevealed(!valueRevealed)}>
-        <p className="text-sm text-slate-600 mb-2">Current Value {valueRevealed ? '(click to hide)' : '(click to reveal)'}</p>
+        <p className="text-sm text-slate-600 mb-2">{currentValueText} {valueRevealed ? clickToHideText : clickToRevealText}</p>
         <p
           className={`text-4xl font-bold text-indigo-600 transition-all duration-300 ${
             valueRevealed ? 'blur-none' : 'blur-md'
