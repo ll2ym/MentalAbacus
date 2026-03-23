@@ -178,8 +178,8 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
   return (
     <div className="flex flex-col items-center gap-6">
       <svg
-        width={svgWidth}
-        height={275}
+        viewBox={`0 0 ${svgWidth} 275`}
+        style={{ width: "100%", height: "auto", maxWidth: svgWidth }}
         className="border-4 border-amber-800 rounded-lg bg-gradient-to-b from-amber-100 to-amber-200 shadow-2xl cursor-pointer"
       >
         {/* Background */}
