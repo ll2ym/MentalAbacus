@@ -21,7 +21,7 @@ const BEAD_SIZE = 20;
 const WOOD_COLOR = "#8B6F47";
 
 const POSITIONS = {
-  UPPER_OFF: 10,
+  UPPER_OFF: 22,
   UPPER_ON: 52, // Can only travel down to the divider
   LOWER_OFF_BASE: 205, // Beads rest at bottom: bead 0 at 205, bead 1 at 185, bead 2 at 165, bead 3 at 145
   LOWER_ON_BASE: 65, // First bead at Y = 65
@@ -137,7 +137,7 @@ export function Abacus({ targetValue, onValueChange, rods = DEFAULT_RODS }: Abac
       }
       // Inactive position - all beads stack at bottom without overlapping
       // Bead 0 at Y=153, Bead 1 at Y=173, Bead 2 at Y=193, Bead 3 at Y=213
-      return 153 + bead.beadIndex * 20;
+      return 135 + bead.beadIndex * 20;
     }
   };
 
