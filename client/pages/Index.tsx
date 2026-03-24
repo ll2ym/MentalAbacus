@@ -16,7 +16,10 @@ const translations = {
     step2: 'Watch the abacus beads move to show the result',
     step3: 'Or drag beads manually to see the value',
     visualAbacus: 'Visual Abacus',
-    dragBeads: 'Drag beads on the rods to calculate values'
+    dragBeads: 'Drag beads on the rods to calculate values',
+    currentValue: 'Current Value',
+    clickToReveal: '(click to reveal)',
+    clickToHide: '(click to hide)'
   },
   de: {
     title: 'Kopf-Abakus',
@@ -33,7 +36,10 @@ const translations = {
     step2: 'Beobachten Sie, wie sich die Abakusperlen bewegen, um das Ergebnis zu zeigen',
     step3: 'Oder ziehen Sie Perlen manuell, um den Wert zu sehen',
     visualAbacus: 'Visueller Abakus',
-    dragBeads: 'Ziehen Sie Perlen auf den Stäben, um Werte zu berechnen'
+    dragBeads: 'Ziehen Sie Perlen auf den Stäben, um Werte zu berechnen',
+    currentValue: 'Aktueller Wert',
+    clickToReveal: '(zum Aufdecken klicken)',
+    clickToHide: '(zum Ausblenden klicken)'
   },
   ru: {
     title: 'Ментальные счеты',
@@ -50,7 +56,10 @@ const translations = {
     step2: 'Смотрите, как движутся косточки, чтобы показать результат',
     step3: 'Или перемещайте косточки вручную, чтобы увидеть значение',
     visualAbacus: 'Визуальные счеты',
-    dragBeads: 'Перемещайте косточки на стержнях для вычисления значений'
+    dragBeads: 'Перемещайте косточки на стержнях для вычисления значений',
+    currentValue: 'Текущее значение',
+    clickToReveal: '(нажмите, чтобы показать)',
+    clickToHide: '(нажмите, чтобы скрыть)'
   },
   tr: {
     title: 'Zihinsel Abaküs',
@@ -67,7 +76,10 @@ const translations = {
     step2: 'Sonucu görmek için abaküs boncuklarının hareketini izleyin',
     step3: 'Veya değeri görmek için boncukları manuel olarak sürükleyin',
     visualAbacus: 'Görsel Abaküs',
-    dragBeads: 'Değerleri hesaplamak için boncukları çubuklarda sürükleyin'
+    dragBeads: 'Değerleri hesaplamak için boncukları çubuklarda sürükleyin',
+    currentValue: 'Geçerli Değer',
+    clickToReveal: '(görmek için tıklayın)',
+    clickToHide: '(gizlemek için tıklayın)'
   },
   ar: {
     title: 'المعداد العقلي',
@@ -84,7 +96,10 @@ const translations = {
     step2: 'شاهد خرزات المعداد تتحرك لإظهار النتيجة',
     step3: 'أو اسحب الخرزات يدويًا لرؤية القيمة',
     visualAbacus: 'المعداد البصري',
-    dragBeads: 'اسحب الخرزات على القضبان لحساب القيم'
+    dragBeads: 'اسحب الخرزات على القضبان لحساب القيم',
+    currentValue: 'القيمة الحالية',
+    clickToReveal: '(انقر للكشف)',
+    clickToHide: '(انقر للإخفاء)'
   },
   zh: {
     title: '珠心算',
@@ -101,7 +116,10 @@ const translations = {
     step2: '观察算盘珠子移动以显示结果',
     step3: '或手动拖动珠子以查看数值',
     visualAbacus: '视觉算盘',
-    dragBeads: '在拨杆上拖动珠子以计算数值'
+    dragBeads: '在拨杆上拖动珠子以计算数值',
+    currentValue: '当前值',
+    clickToReveal: '（点击显示）',
+    clickToHide: '（点击隐藏）'
   },
   fr: {
     title: 'Boulier Mental',
@@ -118,7 +136,10 @@ const translations = {
     step2: 'Regardez les boules du boulier bouger pour montrer le résultat',
     step3: 'Ou faites glisser les boules manuellement pour voir la valeur',
     visualAbacus: 'Boulier Visuel',
-    dragBeads: 'Faites glisser les boules sur les tiges pour calculer des valeurs'
+    dragBeads: 'Faites glisser les boules sur les tiges pour calculer des valeurs',
+    currentValue: 'Valeur Actuelle',
+    clickToReveal: '(cliquer pour révéler)',
+    clickToHide: '(cliquer pour masquer)'
   },
   es: {
     title: 'Ábaco Mental',
@@ -135,7 +156,10 @@ const translations = {
     step2: 'Observa cómo se mueven las cuentas del ábaco para mostrar el resultado',
     step3: 'O arrastra las cuentas manualmente para ver el valor',
     visualAbacus: 'Ábaco Visual',
-    dragBeads: 'Arrastra las cuentas en las varillas para calcular valores'
+    dragBeads: 'Arrastra las cuentas en las varillas para calcular valores',
+    currentValue: 'Valor Actual',
+    clickToReveal: '(haz clic para revelar)',
+    clickToHide: '(haz clic para ocultar)'
   }
 };
 
@@ -186,31 +210,15 @@ export default function Index() {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50"><div className="absolute top-4 right-4 z-50">
         <div className="relative inline-block text-left">
-          <select className="appearance-none bg-white/20 backdrop-blur-sm text-slate-800 md:text-white border border-slate-300 md:border-white/30 hover:bg-white/30 rounded-full px-4 py-2 pr-8 outline-none cursor-pointer font-medium transition-all text-lg md:text-sm transform scale-150 md:scale-100 translate-x-4 md:translate-x-0" value={lang} onChange={(e) => setLang(e.target.value as keyof typeof translations)}>
-            <option value="en" className="text-black">
-              🇬🇧 English
-            </option>
-            <option value="de" className="text-black">
-              🇩🇪 Deutsch
-            </option>
-            <option value="ru" className="text-black">
-              🇷🇺 Русский
-            </option>
-            <option value="tr" className="text-black">
-              🇹🇷 Türkçe
-            </option>
-            <option value="ar" className="text-black">
-              🇸🇦 العربية
-            </option>
-            <option value="zh" className="text-black">
-              🇨🇳 中文
-            </option>
-            <option value="fr" className="text-black">
-              🇫🇷 Français
-            </option>
-            <option value="es" className="text-black">
-              🇪🇸 Español
-            </option>
+          <select className="appearance-none bg-white/20 backdrop-blur-sm text-slate-800 md:text-white border border-slate-300 md:border-white/30 hover:bg-white/30 rounded-full px-3 py-1 pr-6 outline-none cursor-pointer font-medium transition-all text-sm md:text-sm" value={lang} onChange={(e) => setLang(e.target.value as keyof typeof translations)}>
+            <option value="en" className="text-black">🇬🇧</option>
+            <option value="de" className="text-black">🇩🇪</option>
+            <option value="ru" className="text-black">🇷🇺</option>
+            <option value="tr" className="text-black">🇹🇷</option>
+            <option value="ar" className="text-black">🇸🇦</option>
+            <option value="zh" className="text-black">🇨🇳</option>
+            <option value="fr" className="text-black">🇫🇷</option>
+            <option value="es" className="text-black">🇪🇸</option>
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-white">
             <svg
@@ -231,12 +239,12 @@ export default function Index() {
         </div>
       </header>
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-4 py-4 md:py-8">
+      <main className="max-w-7xl mx-auto px-4 py-4 md:py-2 flex-1 w-full">
         {/* Desktop: 2-column grid */}
         <div className="hidden md:grid grid-cols-2 gap-8 h-screen max-h-[calc(100vh-140px)]">
           {/* Left side - Equation Input */}
           <div className="flex flex-col justify-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100 h-full overflow-y-auto">
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100 h-full overflow-y-auto max-w-lg mx-auto w-full">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">{t.inputTitle}</h2>
 
               <div className="space-y-4">
@@ -293,7 +301,7 @@ export default function Index() {
 
           {/* Right side - Abacus */}
           <div className="flex flex-col justify-center">
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-slate-100 h-full flex flex-col">
+            <div className="bg-white rounded-2xl shadow-lg p-5 border border-slate-100 h-full flex flex-col max-w-2xl mx-auto w-full">
               <h2 className="text-2xl font-bold text-slate-900 mb-6">{t.visualAbacus}</h2>
               <div
                 ref={abacusRef}
@@ -302,6 +310,9 @@ export default function Index() {
                 <Abacus
                   targetValue={solvedValue ?? undefined}
                   onValueChange={setAbacusValue}
+                  currentValueText={t.currentValue}
+                  clickToRevealText={t.clickToReveal}
+                  clickToHideText={t.clickToHide}
                 />
               </div>
 
@@ -315,7 +326,7 @@ export default function Index() {
         </div>
 
         {/* Mobile: Stacked layout */}
-        <div className="md:hidden flex flex-col gap-4">
+        <div className="md:hidden flex flex-col gap-4 pt-12">
           {/* Top - Abacus */}
           <div className="p-4">
             <div
@@ -326,6 +337,9 @@ export default function Index() {
                 rods={8}
                 targetValue={solvedValue ?? undefined}
                 onValueChange={setAbacusValue}
+                currentValueText={t.currentValue}
+                clickToRevealText={t.clickToReveal}
+                clickToHideText={t.clickToHide}
               />
             </div>
           </div>
